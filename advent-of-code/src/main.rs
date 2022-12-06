@@ -1,6 +1,8 @@
 mod day_1;
+mod day_2;
 
 use day_1::Elves;
+use day_2::{Game, GameTwo};
 
 fn day_1_solution() {
     let elves: Elves = Elves::load_elves(String::from("src/day_1/source.txt"));
@@ -17,6 +19,17 @@ fn day_1_solution() {
     
 }
 
+fn day_2_solution() {
+    let game: Game = Game::load_strategy_game("src/day_2/strategy_guide.txt");
+    println!("{:#?}", game);
+    println!("Current Score: {}", game.get_current_score());
+
+    let game: GameTwo = GameTwo::load_strategy_game("src/day_2/strategy_guide.txt");
+    println!("{:#?}", game);
+    println!("Current Score: {}", game.get_current_score());
+}
+
 fn main() {
-    day_1_solution();
+    // day_1_solution();
+    day_2_solution();
 }
