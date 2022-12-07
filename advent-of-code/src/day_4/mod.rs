@@ -52,22 +52,58 @@ impl Section {
         return &self.second_elf;
     }
 
+    pub fn get_first_start_id(&self) -> u8 {
+        return self.first_elf.get_start_id();
+    }
+
+    pub fn get_first_end_id(&self) -> u8 {
+        return self.first_elf.get_end_id();
+    }
+
+    pub fn get_second_start_id(&self) -> u8 {
+        return self.second_elf.get_start_id();
+    }
+
+    pub fn get_second_end_id(&self) -> u8 {
+        return self.second_elf.get_end_id();
+    }
+
     pub fn fully_contains(&self) -> bool {
-        if self.first_elf.get_start_id() < self.second_elf.get_start_id() {
-            return self.first_elf.get_end_id() >= self.second_elf.get_end_id();
+        if self.get_first_start_id() < self.get_second_start_id() {
+            return self.get_first_end_id() >= self.get_second_end_id();
+        } else if self.get_first_start_id() == self.get_second_start_id() {
+            if self.get_first_end_id() >= self.get_first_start_id() && self.get_second_end_id() >= self.get_second_start_id() {
+                return true;
+            } else if self.get_first_end_id() <= self.get_first_start_id() && self.get_second_end_id() <= self.get_second_start_id() {
+                return true;
+            } else {
+                return false;
+            }
         } else {
-            return self.second_elf.get_end_id() >= self.first_elf.get_end_id();
+            return self.get_second_end_id() >= self.get_first_end_id();
+        }
+    }
+
+    pub fn partial_contains(&self) -> bool {
+        if self.get_first_start_id() < self.get_second_start_id() {
+            return self.get_first_end_id() >= self.get_second_start_id();
+        } else if self.get_first_start_id() == self.get_second_start_id() {
+            return (self.get_first_end_id() >= self.get_first_end_id() && self.get_second_end_id() >= self.get_first_end_id()) || (self.get_first_end_id() <= self.get_first_end_id() && self.get_second_end_id() <= self.get_first_end_id())
+        } else {
+            return self.get_second_end_id() >= self.get_first_start_id();
         }
     }
 }
 
+#[derive(Debug)]
 pub struct Sections {
     fully_contains_count: u32,
+    partially_contains_count: u32,
 }
 
 impl Sections {
     pub fn new() -> Self {
-        Self { fully_contains_count: 0 }
+        Self { fully_contains_count: 0, partially_contains_count: 0 }
     }
 
     pub fn from_file(filepath: &str) -> Self {
@@ -79,16 +115,23 @@ impl Sections {
         for line in reader.lines() {
             if let Ok(ip) = line {
                 let section = Section::from_line(&ip);
-                if (section.fully_contains()) {
+                if section.fully_contains() {
                     instance.fully_contains_count += 1;
+                }
+                if section.partial_contains() {
+                    instance.partially_contains_count += 1;
                 }
             }
         }
         return instance;
     }
 
-    pub fn get_count(&self) -> u32 {
+    pub fn get_fully_count(&self) -> u32 {
         return self.fully_contains_count;
+    }
+
+    pub fn get_partially_count(&self) -> u32 {
+        return self.partially_contains_count;
     }
 }
 
@@ -158,8 +201,108 @@ mod tests {
     }
 
     #[test]
+    fn test_fully_contains_7() {
+        let line = "5-7,2-8";
+        let section = Section::from_line(line);
+        assert_eq!(true, section.fully_contains());
+    }
+
+    #[test]
+    fn test_fully_contains_8() {
+        let line = "4-90,4-4";
+        let section = Section::from_line(line);
+        assert_eq!(true, section.fully_contains());
+    }
+
+    #[test]
+    fn test_fully_contains_9() {
+        let line = "4-4,4-90";
+        let section = Section::from_line(line);
+        assert_eq!(true, section.fully_contains());
+    }
+
+    #[test]
+    fn test_fully_contains_10() {
+        let line = "4-90,6-90";
+        let section = Section::from_line(line);
+        assert_eq!(true, section.fully_contains());
+    }
+
+    #[test]
+    fn test_partial_contains_1() {
+        let line = "2-4,6-8";
+        let section = Section::from_line(line);
+        assert_eq!(false, section.partial_contains());
+    }
+
+    #[test]
+    fn test_partial_contains_2() {
+        let line = "2-3,4-5";
+        let section = Section::from_line(line);
+        assert_eq!(false, section.partial_contains());
+    }
+
+    #[test]
+    fn test_partial_contains_3() {
+        let line = "5-7,7-9";
+        let section = Section::from_line(line);
+        assert_eq!(true, section.partial_contains());
+    }
+
+    #[test]
+    fn test_partial_contains_4() {
+        let line = "2-8,3-7";
+        let section = Section::from_line(line);
+        assert_eq!(true, section.partial_contains());
+    }
+
+    #[test]
+    fn test_partial_contains_5() {
+        let line = "6-6,4-6";
+        let section = Section::from_line(line);
+        assert_eq!(true, section.partial_contains());
+    }
+
+    #[test]
+    fn test_partial_contains_6() {
+        let line = "2-6,4-8";
+        let section = Section::from_line(line);
+        assert_eq!(true, section.partial_contains());
+    }
+
+    #[test]
+    fn test_partial_contains_7() {
+        let line = "5-7,2-8";
+        let section = Section::from_line(line);
+        assert_eq!(true, section.partial_contains());
+    }
+
+    #[test]
+    fn test_partial_contains_8() {
+        let line = "4-90,4-4";
+        let section = Section::from_line(line);
+        assert_eq!(true, section.partial_contains());
+    }
+
+    #[test]
+    fn test_partial_contains_9() {
+        let line = "4-4,4-90";
+        let section = Section::from_line(line);
+        assert_eq!(true, section.partial_contains());
+    }
+
+    #[test]
+    fn test_partial_contains_10() {
+        let line = "4-90,6-90";
+        let section = Section::from_line(line);
+        assert_eq!(true, section.partial_contains());
+    }
+
+
+    #[test]
     fn test_sections() {
         let sections = Sections::from_file("src/day_4/test.txt");
-        assert_eq!(2, sections.get_count());
+        assert_eq!(2, sections.get_fully_count());
+        assert_eq!(4, sections.get_partially_count());
     }
 }

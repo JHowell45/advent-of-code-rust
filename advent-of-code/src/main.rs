@@ -44,7 +44,7 @@ fn day_3_solution() {
 
 fn day_4_solution() {
     let sections = Sections::from_file("src/day_4/section_assignments.txt");
-    println!("Fully Contains Count: {}", sections.get_count());
+    println!("{:#?}", sections);
 }
 
 
