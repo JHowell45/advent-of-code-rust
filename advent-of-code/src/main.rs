@@ -6,6 +6,7 @@ mod day_4;
 use day_1::Elves;
 use day_2::{Game, GameTwo};
 use day_3::{ElfGroups, RucksackPriorities};
+use day_4::Sections;
 
 
 fn day_1_solution() {
@@ -42,7 +43,8 @@ fn day_3_solution() {
 }
 
 fn day_4_solution() {
-
+    let sections = Sections::from_file("src/day_4/section_assignments.txt");
+    println!("Fully Contains Count: {}", sections.get_count());
 }
 
 

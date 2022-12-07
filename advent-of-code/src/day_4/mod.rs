@@ -1,3 +1,6 @@
+use std::fs::File;
+use std::io::{BufRead, BufReader};
+
 pub struct SectionAssignment {
     start_section_id: u8,
     end_section_id: u8,
@@ -13,11 +16,8 @@ impl SectionAssignment {
 
     pub fn from_line(line: &str) -> Self {
         let mut split = line.split("-");
-        println!("{:#?}", split);
-        println!("{}", split.next().unwrap());
-        println!("{}", split.next().unwrap());
-        let first: u8 = split.next().chars();
-        let second: u8 = split.next().chars();
+        let first: u8 = split.next().unwrap().parse().unwrap();
+        let second: u8 = split.next().unwrap().parse().unwrap();
         return Self::new(first, second);
     }
 
@@ -35,6 +35,63 @@ pub struct Section {
     second_elf: SectionAssignment,
 }
 
+impl Section {
+    pub fn from_line(text_line: &str) -> Self {
+        let mut split = text_line.split(",");
+        return Self {
+            first_elf: SectionAssignment::from_line(split.next().unwrap()),
+            second_elf: SectionAssignment::from_line(split.next().unwrap())
+        }
+    }
+
+    pub fn get_first_elf(&self) -> &SectionAssignment {
+        return &self.first_elf;
+    }
+
+    pub fn get_second_elf(&self) -> &SectionAssignment {
+        return &self.second_elf;
+    }
+
+    pub fn fully_contains(&self) -> bool {
+        if self.first_elf.get_start_id() < self.second_elf.get_start_id() {
+            return self.first_elf.get_end_id() >= self.second_elf.get_end_id();
+        } else {
+            return self.second_elf.get_end_id() >= self.first_elf.get_end_id();
+        }
+    }
+}
+
+pub struct Sections {
+    fully_contains_count: u32,
+}
+
+impl Sections {
+    pub fn new() -> Self {
+        Self { fully_contains_count: 0 }
+    }
+
+    pub fn from_file(filepath: &str) -> Self {
+        let path = String::from(filepath);
+        let mut instance = Self::new();
+        let file = File::open(path).expect("Unable to load file!");
+        let reader = BufReader::new(file);
+
+        for line in reader.lines() {
+            if let Ok(ip) = line {
+                let section = Section::from_line(&ip);
+                if (section.fully_contains()) {
+                    instance.fully_contains_count += 1;
+                }
+            }
+        }
+        return instance;
+    }
+
+    pub fn get_count(&self) -> u32 {
+        return self.fully_contains_count;
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -45,5 +102,64 @@ mod tests {
         let sa = SectionAssignment::from_line(&line);
         assert_eq!(2, sa.get_start_id());
         assert_eq!(8, sa.get_end_id());
+    }
+
+    #[test]
+    fn test_create_section_from_line() {
+        let line = "60-60,45-60";
+        let section = Section::from_line(line);
+        assert_eq!(60, section.get_first_elf().get_start_id());
+        assert_eq!(60, section.get_first_elf().get_end_id());
+        assert_eq!(45, section.get_second_elf().get_start_id());
+        assert_eq!(60, section.get_second_elf().get_end_id());
+        assert_eq!(true, section.fully_contains());
+    }
+
+    #[test]
+    fn test_fully_contains_1() {
+        let line = "2-4,6-8";
+        let section = Section::from_line(line);
+        assert_eq!(false, section.fully_contains());
+    }
+
+    #[test]
+    fn test_fully_contains_2() {
+        let line = "2-3,4-5";
+        let section = Section::from_line(line);
+        assert_eq!(false, section.fully_contains());
+    }
+
+    #[test]
+    fn test_fully_contains_3() {
+        let line = "5-7,7-9";
+        let section = Section::from_line(line);
+        assert_eq!(false, section.fully_contains());
+    }
+
+    #[test]
+    fn test_fully_contains_4() {
+        let line = "2-8,3-7";
+        let section = Section::from_line(line);
+        assert_eq!(true, section.fully_contains());
+    }
+
+    #[test]
+    fn test_fully_contains_5() {
+        let line = "6-6,4-6";
+        let section = Section::from_line(line);
+        assert_eq!(true, section.fully_contains());
+    }
+
+    #[test]
+    fn test_fully_contains_6() {
+        let line = "2-6,4-8";
+        let section = Section::from_line(line);
+        assert_eq!(false, section.fully_contains());
+    }
+
+    #[test]
+    fn test_sections() {
+        let sections = Sections::from_file("src/day_4/test.txt");
+        assert_eq!(2, sections.get_count());
     }
 }
