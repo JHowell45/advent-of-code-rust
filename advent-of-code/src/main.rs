@@ -1,8 +1,10 @@
 mod day_1;
 mod day_2;
+mod day_3;
 
 use day_1::Elves;
 use day_2::{Game, GameTwo};
+use day_3::{ElfGroups, RucksackPriorities};
 
 fn day_1_solution() {
     let elves: Elves = Elves::load_elves(String::from("src/day_1/source.txt"));
@@ -29,7 +31,17 @@ fn day_2_solution() {
     println!("Current Score: {}", game.get_current_score());
 }
 
+fn day_3_solution() {
+    let rsp = RucksackPriorities::load_from_file("src/day_3/rucksack_items.txt");
+    println!("{:#?}", rsp);
+
+    let mut eg = ElfGroups::load_from_file("src/day_3/rucksack_items.txt");
+    println!("Priority Points: {:#?}", eg.get_priority_points());
+}
+
+
 fn main() {
     // day_1_solution();
-    day_2_solution();
+    // day_2_solution();
+    day_3_solution();
 }
