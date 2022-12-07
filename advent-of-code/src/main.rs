@@ -1,10 +1,12 @@
 mod day_1;
 mod day_2;
 mod day_3;
+mod day_4;
 
 use day_1::Elves;
 use day_2::{Game, GameTwo};
 use day_3::{ElfGroups, RucksackPriorities};
+
 
 fn day_1_solution() {
     let elves: Elves = Elves::load_elves(String::from("src/day_1/source.txt"));
@@ -39,9 +41,14 @@ fn day_3_solution() {
     println!("Priority Points: {:#?}", eg.get_priority_points());
 }
 
+fn day_4_solution() {
+
+}
+
 
 fn main() {
     // day_1_solution();
     // day_2_solution();
-    day_3_solution();
+    // day_3_solution();
+    day_4_solution();
 }
